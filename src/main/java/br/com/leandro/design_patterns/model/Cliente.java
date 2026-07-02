@@ -1,6 +1,7 @@
 package br.com.leandro.design_patterns.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 public class Cliente {
@@ -8,6 +9,7 @@ public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @NotBlank(message = "O nome é obrigatório")
     private String nome;
     @ManyToOne
     private Endereco endereco;

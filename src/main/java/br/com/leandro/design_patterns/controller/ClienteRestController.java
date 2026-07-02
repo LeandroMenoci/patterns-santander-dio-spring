@@ -2,18 +2,21 @@ package br.com.leandro.design_patterns.controller;
 
 import br.com.leandro.design_patterns.model.Cliente;
 import br.com.leandro.design_patterns.service.ClienteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collections;
 
 @RestController
 @RequestMapping("clientes")
 public class ClienteRestController {
 
-    @Autowired
-    private ClienteService clienteService;
+    private final ClienteService clienteService;
+
+    public ClienteRestController(ClienteService clienteService) {
+        this.clienteService = clienteService;
+    }
 
     @GetMapping
     public ResponseEntity<Iterable<Cliente>> buscarTodos() {
@@ -26,9 +29,9 @@ public class ClienteRestController {
     }
 
     @PostMapping
-    public ResponseEntity<Cliente> inserir(@RequestBody Cliente cliente) {
+    public ResponseEntity<Cliente> inserir(@RequestBody @Valid Cliente cliente) {
         clienteService.inserir(cliente);
-        return ResponseEntity.ok(cliente);
+        return ResponseEntity.status(HttpStatus.CREATED).body(cliente);
     }
 
     @PutMapping("/{id}")
@@ -38,8 +41,8 @@ public class ClienteRestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Cliente> deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         clienteService.deletar(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
