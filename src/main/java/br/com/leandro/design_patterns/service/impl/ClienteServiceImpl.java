@@ -77,7 +77,7 @@ public class ClienteServiceImpl implements ClienteService {
         //Prepara a entidade com os dados atualizados do DTO
         Cliente cliente = new Cliente();
         cliente.setId(id);
-        salvarClienteComCep(dto.nome());
+        cliente.setNome(dto.nome());
 
         //Salva e retorna
         return salvarClienteComCep(cliente, dto.cep());

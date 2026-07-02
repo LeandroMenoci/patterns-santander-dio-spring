@@ -24,18 +24,18 @@ public class ClienteRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable @Valid Long id) {
+    public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<ClienteResponseDTO> inserir(@RequestBody ClienteRequestDTO dto) {
+    public ResponseEntity<ClienteResponseDTO> inserir(@Valid @RequestBody ClienteRequestDTO dto) {
         ClienteResponseDTO clienteCriado = clienteService.inserir(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(clienteCriado);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClienteResponseDTO> atualizar(@PathVariable Long id, @RequestBody ClienteRequestDTO dto) {
+    public ResponseEntity<ClienteResponseDTO> atualizar(@PathVariable Long id,  @Valid @RequestBody ClienteRequestDTO dto) {
         ClienteResponseDTO clienteAtualizado = clienteService.atualizar(id, dto);
         return ResponseEntity.ok(clienteAtualizado);
     }
