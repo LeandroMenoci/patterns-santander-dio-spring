@@ -1,9 +1,9 @@
 package br.com.leandro.design_patterns.controller;
 
-import br.com.leandro.design_patterns.model.Cliente;
+import br.com.leandro.design_patterns.dto.ClienteRequestDTO;
+import br.com.leandro.design_patterns.dto.ClienteResponseDTO;
 import br.com.leandro.design_patterns.service.ClienteService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,25 +19,25 @@ public class ClienteRestController {
     }
 
     @GetMapping
-    public ResponseEntity<Iterable<Cliente>> buscarTodos() {
+    public ResponseEntity<Iterable<ClienteResponseDTO>> buscarTodos() {
         return ResponseEntity.ok(clienteService.buscarTodos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable @Valid Long id) {
         return ResponseEntity.ok(clienteService.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<Cliente> inserir(@RequestBody @Valid Cliente cliente) {
-        clienteService.inserir(cliente);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cliente);
+    public ResponseEntity<ClienteResponseDTO> inserir(@RequestBody ClienteRequestDTO dto) {
+        ClienteResponseDTO clienteCriado = clienteService.inserir(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteCriado);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> atualizar(@PathVariable Long id, @RequestBody Cliente cliente) {
-        clienteService.atualizar(id, cliente);
-        return ResponseEntity.ok(cliente);
+    public ResponseEntity<ClienteResponseDTO> atualizar(@PathVariable Long id, @RequestBody ClienteRequestDTO dto) {
+        ClienteResponseDTO clienteAtualizado = clienteService.atualizar(id, dto);
+        return ResponseEntity.ok(clienteAtualizado);
     }
 
     @DeleteMapping("/{id}")

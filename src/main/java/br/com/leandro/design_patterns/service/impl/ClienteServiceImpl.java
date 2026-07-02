@@ -1,17 +1,19 @@
 package br.com.leandro.design_patterns.service.impl;
 
+import br.com.leandro.design_patterns.dto.ClienteRequestDTO;
+import br.com.leandro.design_patterns.dto.ClienteResponseDTO;
 import br.com.leandro.design_patterns.model.Cliente;
 import br.com.leandro.design_patterns.model.ClienteRepository;
 import br.com.leandro.design_patterns.model.Endereco;
 import br.com.leandro.design_patterns.model.EnderecoRepository;
 import br.com.leandro.design_patterns.service.ClienteService;
 import br.com.leandro.design_patterns.service.ViaCepService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -32,52 +34,73 @@ public class ClienteServiceImpl implements ClienteService {
 
 
     @Override
-    public Iterable<Cliente> buscarTodos() {
-        return clienteRepository.findAll();
+    public Iterable<ClienteResponseDTO> buscarTodos() {
+        // Busca todos no banco e converte um por um para DTO
+        List<Cliente> clientes = (List<Cliente>) clienteRepository.findAll();
+        return clientes.stream()
+                .map(this::converterParaResponse)
+                .collect(Collectors.toList());
+
+//        return clienteRepository.findAll();
     }
 
     @Override
-    public Cliente buscarPorId(Long id) {
+    public ClienteResponseDTO buscarPorId(Long id) {
 //        Optional<Cliente> cliente = clienteRepository.findById(id);
 //        return cliente.get();
 
         // Atualizado, melhoria caso não encontre um erro, lançar um 404 ao invés de quebrar a aplicação com um erro 500
-        return clienteRepository.findById(id)
+        Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado com o ID: " + id));
+
+        return converterParaResponse(cliente);
     }
 
     @Override
-    public void inserir(Cliente cliente) {
-        salvarClienteComCep(cliente);
+    public ClienteResponseDTO inserir(ClienteRequestDTO dto) {
+        Cliente cliente = new Cliente();
+        cliente.setNome(dto.nome());
+        return salvarClienteComCep(cliente, dto.cep());
     }
 
     @Override
-    public void atualizar(Long id, Cliente cliente) {
+    public ClienteResponseDTO atualizar(Long id, ClienteRequestDTO dto) {
 //        Optional<Cliente> clienteBd = clienteRepository.findById(id);
 //        if(clienteBd.isPresent()) {
 //            salvarClienteComCep(cliente);
 //        }
 
         //Atualizado melhoria
+        // Valida se o cliente existe (se não existir, lança 404)
         buscarPorId(id);
+
+        //Prepara a entidade com os dados atualizados do DTO
+        Cliente cliente = new Cliente();
         cliente.setId(id);
-        salvarClienteComCep(cliente);
+        salvarClienteComCep(dto.nome());
+
+        //Salva e retorna
+        return salvarClienteComCep(cliente, dto.cep());
     }
 
     @Override
     public void deletar(Long id) {
-        buscarPorId(id);
+        buscarPorId(id); //Lança 404 se não existir
         clienteRepository.deleteById(id);
     }
 
-    private void salvarClienteComCep(Cliente cliente) {
-        String cep = cliente.getEndereco().getCep();
+    private ClienteResponseDTO converterParaResponse(Cliente cliente) {
+        return new ClienteResponseDTO(cliente.getId(), cliente.getNome(), cliente.getEndereco());
+    }
+
+    private ClienteResponseDTO salvarClienteComCep(Cliente cliente, String cep) {
         Endereco endereco = enderecoRepository.findById(Long.valueOf(cep)).orElseGet(() -> {
             Endereco novoEndereco = viaCepService.consultarCep(cep);
             enderecoRepository.save(novoEndereco);
             return novoEndereco;
         });
         cliente.setEndereco(endereco);
-        clienteRepository.save(cliente);
+        Cliente clienteSalvo = clienteRepository.save(cliente);
+        return converterParaResponse(clienteSalvo);
     }
 }
